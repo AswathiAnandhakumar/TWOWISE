@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NoteItUp</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom right, #4facfe, #ffffff);
+            height: 100vh;
+        }
+        /* Auth container */
+        .auth-container {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+            width: 300px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #2b6cb0;
+
+}
+        
+        input, select {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 95%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1a4f88;
+        }
+        .toggle {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #2b6cb0;
+            cursor: pointer;
+        }
+
+        /* Home Page */
+        .home-container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            background-color: #2b6cb0;
+            color: white;
+            width: 250px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .sidebar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .sidebar h3 {
+            margin: 10px 0;
+        }
+        .sidebar button {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 10px 0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .sidebar button:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Notes section */
+        .folder {
+            background-color: #f4f4f4;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .sub-folder {
+            margin-left: 20px;
+            background-color: #e2e2e2;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        /* Folder boxes on home page */
+        .folder-box {
+            background-color: #e7f0fd;
+            border: 2px solid #2b6cb0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .folder-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2b6cb0;
+            margin-bottom: 10px;
+        }
+        .module-title {
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .note-list {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="authSection" class="auth-container">
+    <div class="container" id="authContainer">
+        <h1 id="formTitle">NoteItUp Login</h1>
+        
+        <input type="text" id="username" placeholder="Enter username">
+        <input type="password" id="password" placeholder="Enter password">
+        
+        <button id="authButton" onclick="login()">Login</button>
+        
+        <div class="toggle" onclick="toggleForm()">Don't have an account? Sign up</div>
+    </div>
+</div>
+
+<div id="homeSection" style="display: none;">
+    <div class="home-container">
+        <div class="sidebar">
+            <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile">
+            <h3 id="displayName"></h3>
+            <button onclick="showHome()">🏠 Home</button>
+            <button onclick="showNotes()">📁 Notes</button>
+            <button onclick="showProfile()">👤 Profile</button>
+            <button onclick="logout()">🚪 Logout</button>
+        </div>
+        <div class="content" id="contentArea">
+            <h2>Welcome to EduHub!</h2>
+            <p>Select an option from the sidebar.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isLogin = true;
+
+    function toggleForm() {
+        const formTitle = document.getElementById("formTitle");
+        const authButton = document.getElementById("authButton");
+        const toggleText = document.querySelector(".toggle");
+
+        if (isLogin) {
+            formTitle.textContent = "NoteItUp Sign Up";
+            authButton.textContent = "Sign Up";
+            authButton.setAttribute("onclick", "signup()");
+            toggleText.textContent = "Already have an account? Login";
+        } else {
+            formTitle.textContent = "NoteItUp Login";
+            authButton.textContent = "Login";
+            authButton.setAttribute("onclick", "login()");
+            toggleText.textContent = "Don't have an account? Sign up";
+        }
+        isLogin = !isLogin;
+    }
+
+    function signup() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        if (users.find(user => user.username === username)) {
+            alert("Username already exists.");
+            return;
+        }
+
+        users.push({ username, password, dob: "", phone: "", email: "", gender: "", backupEmail: "", profilePic: "https://via.placeholder.com/100" });
+        localStorage.setItem("users", JSON.stringify(users));
+        alert("Sign up successful! Please log in.");
+        toggleForm();
+    }
+
+    function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+            alert("Please enter both username and password.");
+            return;
+        }
+
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        const user = users.find(user => user.username === username && user.password === password);
+
+        if (user) {
+            localStorage.setItem("loggedInUser", username);
+            document.getElementById("displayName").innerText = username;
+            document.getElementById("profilePic").src = user.profilePic;
+            document.getElementById("authSection").style.display = "none";
+            document.getElementById("homeSection").style.display = "block";
+            showHome();
+        } else {
+            alert("Invalid username or password.");
+        }
+    }
+
+    // Updated logout with confirmation
+    function logout() {
+        if (confirm("Are you sure you want to logout?")) {
+            localStorage.removeItem("loggedInUser");
+            document.getElementById("authSection").style.display = "flex";
+            document.getElementById("homeSection").style.display = "none";
+        }
+    }
+
+    // Updated showHome function to display uploaded notes as folder boxes with headings
+    function showHome() {
+        let html = "<h2>Welcome to NoteItUp!</h2><p>Select an option from the sidebar.</p>";
+
+        let usersNotes = JSON.parse(localStorage.getItem("usersNotes")) || {};
+        let username = localStorage.getItem("loggedInUser");
+
+        if (usersNotes[username] && Object.keys(usersNotes[username]).length > 0) {
+            html += "<h3>Your Uploaded Notes</h3>";
+
+            for (let subject in usersNotes[username]) {
+                html += `<div class="folder-box">`;
+                html += `<div class="folder-title">📁 ${subject}</div>`;
+
+                for (let module in usersNotes[username][subject]) {
+                    html += `<div class="module-title">📄 ${module}</div>`;
+                    html += `<ul class="note-list">`;
+
+                    usersNotes[username][subject][module].forEach(file => {
+                        html += `<li><a href="${file.data}" target="_blank">${file.name}</a></li>`;
+                    });
+
+                    html += `</ul>`;
+                }
+
+                html += `</div>`; // close folder-box
+            }
+        } else {
+            html += "<p>No uploaded notes yet.</p>";
+        }
+
+        document.getElementById("contentArea").innerHTML = html;
+    }
+
+    // Show notes page with upload form and list of notes
+    function showNotes() {
+        let html = `
+           <h2>Upload Notes</h2>
+        <form id="uploadForm" onsubmit="return uploadNotes(event)">
+            <label for="subject">Select Subject:</label><br>
+            <input list="subjects" id="subject" name="subject" placeholder="Select or type subject" required>
+            <datalist id="subjects">
+                <option value="DBMS">
+                <option value="OOP">
+                <option value="Computer Networks">
+                <option value="Software Engineering">
+                <option value="Digital System Design">
+            </datalist>
+            <br><br>
+
+            <label for="module">Enter Module:</label><br>
+            <input type="text" id="module" name="module" placeholder="Module 1, Module 2, etc." required>
+            <br><br>
+
+            <label for="notes">Select Notes (multiple files allowed):</label><br>
+            <input type="file" id="notes" name="notes" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.jpg,.jpeg,.png">
+            <br><br>
+
+            <button type="submit">Upload</button>
+        </form>
+        <hr>
+        <h3>Your Uploaded Notes</h3>
+        <div id="uploadedNotesList"></div>
+        `;
+
+        document.getElementById("contentArea").innerHTML = html;
+        renderUploadedNotesList();
+    }
+
+    function uploadNotes(event) {
+        event.preventDefault();
+
+        const subject = document.getElementById("subject").value.trim();
+        const module = document.getElementById("module").value.trim();
+        const files = document.getElementById("notes").files;
+
+        if (!subject || !module) {
+            alert("Please enter subject and module.");
+            return false;
+        }
+        if (!files.length) {
+            alert("Please select at least one file.");
+            return false;
+        }
+
+        let username = localStorage.getItem("loggedInUser");
+        let usersNotes = JSON.parse(localStorage.getItem("usersNotes")) || {};
+
+        if (!usersNotes[username]) usersNotes[username] = {};
+        if (!usersNotes[username][subject]) usersNotes[username][subject] = {};
+        if (!usersNotes[username][subject][module]) usersNotes[username][subject][module] = [];
+
+        const filesArr = Array.from(files);
+
+        let filesProcessed = 0;
+
+        filesArr.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                usersNotes[username][subject][module].push({ name: file.name, data: e.target.result });
+                filesProcessed++;
+                if (filesProcessed === filesArr.length) {
+                    localStorage.setItem("usersNotes", JSON.stringify(usersNotes));
+                    alert("Files uploaded successfully.");
+                    showNotes();
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        return false;
+    }
+
+    function renderUploadedNotesList() {
+        let username = localStorage.getItem("loggedInUser");
+        let usersNotes = JSON.parse(localStorage.getItem("usersNotes")) || {};
+        let html = "";
+
+        if (usersNotes[username]) {
+            for (let subject in usersNotes[username]) {
+                html += `<div class="folder-box"><div class="folder-title">📁 ${subject}</div>`;
+
+                for (let module in usersNotes[username][subject]) {
+                    html += `<div class="module-title">📄 ${module}</div><ul class="note-list">`;
+
+                    usersNotes[username][subject][module].forEach(file => {
+                        html += `<li><a href="${file.data}" target="_blank">${file.name}</a></li>`;
+                    });
+
+                    html += `</ul>`;
+                }
+
+                html += `</div>`;
+            }
+        } else {
+            html = "<p>No notes uploaded yet.</p>";
+        }
+
+        document.getElementById("uploadedNotesList").innerHTML = html;
+    }
+
+    // Show profile page with editable details and profile picture upload
+    function showProfile() {
+        let username = localStorage.getItem("loggedInUser");
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        let user = users.find(u => u.username === username);
+
+        if (!user) return;
+
+        let html = `
+            <h2>Profile</h2>
+            <img src="${user.profilePic || 'https://via.placeholder.com/100'}" alt="Profile Picture" style="width:100px; height:100px; border-radius:50%; object-fit: cover;">
+            <br><br>
+            <label>Change Profile Picture:</label><br>
+            <input type="file" id="profilePicInput" accept="image/*" onchange="previewProfilePic(event)">
+            <br><br>
+
+            <form id="profileForm" onsubmit="return saveProfile(event)">
+                <label>Username:</label><br>
+                <input type="text" id="profileUsername" value="${user.username}" disabled><br><br>
+
+                <label>Date of Birth:</label><br>
+                <input type="date" id="profileDOB" value="${user.dob || ''}"><br><br>
+
+                <label>Phone Number:</label><br>
+                <input type="tel" id="profilePhone" value="${user.phone || ''}"><br><br>
+
+                <label>Email:</label><br>
+                <input type="email" id="profileEmail" value="${user.email || ''}"><br><br>
+
+                <label>Gender:</label><br>
+                <select id="profileGender">
+                    <option value="" ${!user.gender ? 'selected' : ''}>Select Gender</option>
+                    <option value="Male" ${user.gender === 'Male' ? 'selected' : ''}>Male</option>
+                    <option value="Female" ${user.gender === 'Female' ? 'selected' : ''}>Female</option>
+                    <option value="Other" ${user.gender === 'Other' ? 'selected' : ''}>Other</option>
+                </select>
+                <br><br>
+
+                <label>Backup Email:</label><br>
+                <input type="email" id="profileBackupEmail" value="${user.backupEmail || ''}"><br><br>
+
+                <button type="submit">Save Profile</button>
+            </form>
+        `;
+
+        document.getElementById("contentArea").innerHTML = html;
+    }
+
+    // Save profile updates (excluding username and profile pic which is saved instantly on upload)
+    function saveProfile(event) {
+        event.preventDefault();
+
+        let username = localStorage.getItem("loggedInUser");
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        let user = users.find(u => u.username === username);
+
+        if (!user) return;
+
+        user.dob = document.getElementById("profileDOB").value;
+        user.phone = document.getElementById("profilePhone").value.trim();
+        user.email = document.getElementById("profileEmail").value.trim();
+        user.gender = document.getElementById("profileGender").value;
+        user.backupEmail = document.getElementById("profileBackupEmail").value.trim();
+
+        localStorage.setItem("users", JSON.stringify(users));
+        alert("Profile saved successfully.");
+        showProfile();
+    }
+
+    // Profile picture upload preview & save
+    function previewProfilePic(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert("Please select a valid image file.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Update image preview immediately
+            const img = document.querySelector("#contentArea img");
+            img.src = e.target.result;
+
+            // Save image data URL to user profile in localStorage
+            updateProfilePicInStorage(e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updateProfilePicInStorage(dataURL) {
+        const username = localStorage.getItem("loggedInUser");
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        let user = users.find(u => u.username === username);
+
+        if (user) {
+            user.profilePic = dataURL;
+            localStorage.setItem("users", JSON.stringify(users));
+            // Also update sidebar profile picture immediately
+            document.getElementById("profilePic").src = dataURL;
+        }
+    }
+
+    // On page load, check if user is logged in and show correct section
+    window.onload = function() {
+        let loggedInUser = localStorage.getItem("loggedInUser");
+        if (loggedInUser) {
+            let users = JSON.parse(localStorage.getItem("users")) || [];
+            let user = users.find(u => u.username === loggedInUser);
+            if (user) {
+                document.getElementById("displayName").innerText = loggedInUser;
+                document.getElementById("profilePic").src = user.profilePic || "https://via.placeholder.com/100";
+                document.getElementById("authSection").style.display = "none";
+                document.getElementById("homeSection").style.display = "block";
+                showHome();
+                return;
+            }
+        }
+        document.getElementById("authSection").style.display = "flex";
+        document.getElementById("homeSection").style.display = "none";
+    }
+</script>
+
+</body>
+</html>
