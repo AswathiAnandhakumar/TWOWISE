@@ -44,21 +44,21 @@ For Software:
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](SCREENSHORT1.png)
+![Screenshot1](img2.png)
 *This is the signup page of NoteItUp application*
 
-![Screenshot2](SCREENSHORT2.png)
+![Screenshot2](img1.png)
 *This is the login page of NoteItUp application*
 
-![Screenshot3](SCREENSHOT3.png)
+![Screenshot3](img3.png)
 *This is the home page of NoteItUp application*
 
 
-![Screenshot4](SCREENSHOT4.png)
+![Screenshot4](img4.png)
 *This is the note uploading  page of NoteItUp application*
 
 
-![Screenshot5](SCREENSHOT5.png)
+![Screenshot5](img5.png)
 *This is the profile uploading page of NoteItUp application*
 
 
